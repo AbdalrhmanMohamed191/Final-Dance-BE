@@ -1,5 +1,6 @@
 // IMPORTS
 const express = require('express');
+const crypto = require("crypto");
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
@@ -9,7 +10,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // IMPORT VALIDATORS
-const { registerSchema, verifySchema, loginSchema, resendOtpSchema, forgotPasswordSchema } = require('../validation/userValidator');
+const { registerSchema, verifySchema, loginSchema, resendOtpSchema, forgotPasswordSchema, resetPasswordSchema } = require('../validation/userValidator');
 // const { generate } = require('otp-generator');
 const User = require("../model/user");
 const { sendEmail } = require('../utils/sendEmail');
@@ -142,6 +143,36 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
      try {
         // VALIDATION
+        const {error , value} = forgotPasswordSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({message : error.message});
+        }
+
+        const {email} = value;
+
+        // CHECK IF USER EXISTS
+        const user = await User.findOne({email});
+        if (!user) {
+            return res.status(400).json({message : "User Does Not Exists"});
+        }
+
+        // crpto token => resetPasswordToken
+        const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+        const resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+        // UPDATE USER
+        user.resetPasswordToken = resetPasswordToken;   
+        user.resetPasswordExpire = resetPasswordExpire;
+
+        await user.save(); 
+
+        // CREATE RESET URL
+        const resetUrl = `${process.env.CLIENT_ORIGIN}/reset-password/${resetPasswordToken}`;
+        // SEND EMAIL
+        await sendEmail(email , "Reset Password" , `Click On The Link To Reset Your Password ${resetUrl}`);
+
+        res.status(200).json({message : "Reset Password Email Sent Successfully To Your Email..."});
+
 
         
     } catch (error) {
@@ -152,7 +183,31 @@ router.post("/forgot-password", async (req, res) => {
 // TODO RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
      try {
-        
+        const {error , value} = resetPasswordSchema.validate(req.body , {abortEarly : false});
+        if (error) {
+            return res.status(400).json({message : error.map((err) => err.message)});
+        }
+
+        const {token , newPassword} = value;
+
+        // CHECK IF USER EXISTS
+        const user = await User.findOne({resetPasswordToken : token , resetPasswordExpire : {$gt : Date.now()}});
+        if (!user) {
+            return res.status(400).json({message : "Invalid Token Or Token Expired"});
+        }
+
+        // Hash Password
+        const HashedPassword = await bcrypt.hash(newPassword , 12);
+
+        // UPDATE USER
+        user.password = HashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save();
+
+        res.status(200).json({message : "Password Reset Successfully"});
+
     } catch (error) {
         console.log(error)
         res.status(500).json({message : "Internal Server Error"})

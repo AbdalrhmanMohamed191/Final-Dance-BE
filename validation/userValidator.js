@@ -25,4 +25,10 @@ const forgotPasswordSchema = joi.object({
     email: joi.string().email().required(),
 });
 
-module.exports = { registerSchema , verifySchema , loginSchema , resendOtpSchema , forgotPasswordSchema };
+const resetPasswordSchema = joi.object({
+    token: joi.string().required(),
+    newPassword: joi.string().min(6).required(),
+
+});
+
+module.exports = { registerSchema , verifySchema , loginSchema , resendOtpSchema , forgotPasswordSchema , resetPasswordSchema };
