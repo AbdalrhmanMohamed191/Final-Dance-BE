@@ -15,6 +15,7 @@ const { registerSchema, verifySchema, loginSchema, resendOtpSchema, forgotPasswo
 const User = require("../model/user");
 const { sendEmail } = require('../utils/sendEmail');
 const { generateOtp } = require('../utils/generateOtp');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 
 // TODO REGISTER USER
@@ -260,7 +261,6 @@ router.post("/resend-otp", async (req, res) => {
         res.status(500).json({message : "Internal Server Error"})
     }
 });
-
 // TODO ME 
 router.get("/me" , authMiddleware , async (req, res) => {
     try {
