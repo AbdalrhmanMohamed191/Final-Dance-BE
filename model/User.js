@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { route } = require("../routes/authRoutes");
 
 const userSchema = new mongoose.Schema({
     email : {
@@ -9,7 +10,11 @@ const userSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-
+    role : {
+        type : String,
+        enum : ["user" , "admin", "super-Admin"],
+        default : "user"
+    },
     otp : {
         type : String,
         maxlength : 6
@@ -20,6 +25,13 @@ const userSchema = new mongoose.Schema({
     isVerfied : {
         type : Boolean,
         default : false
+    },
+
+    resetPasswordToken : {
+        type : String
+    },
+    resetPasswordExpire : {
+        type : Date
     }
 });
 
