@@ -235,6 +235,11 @@ router.post("/resend-otp", async (req, res) => {
             return res.status(400).json({message : "Account Is Already Verified"}); 
         }
 
+       // PREVENT SPAMMING
+        if (user.otp && user.otpExpired > Date.now()) {
+            return res.status(400).json({message : "Please Try Again After 10 Minutes"});
+        }
+
          // Generate OTP
          const {otp , otpExpired} =  generateOtp();
 
@@ -256,4 +261,20 @@ router.post("/resend-otp", async (req, res) => {
     }
 });
 
+// TODO ME 
+router.get("/me" , authMiddleware , async (req, res) => {
+    try {
+        // EXTRACT USER
+        const id = req.user.id;
+        // CHECK IF USER EXISTS
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(400).json({message : "User Does Not Exists"});
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message : "Internal Server Error"})
+    }
+});
 module.exports = router;
