@@ -5,11 +5,10 @@ const dotenv = require("dotenv");
 // CONFIG
 dotenv.config();
 
-
 function authMiddleware (request , response , next) {
     try {
         // CHECK IF USER IS AUTHENTICATED
-        const auth = request.headers[authorization];
+        const auth = request.headers["authorization"];
         if (!auth) {
             return response.status(401).json({message : "Unauthorized"});
         }

@@ -7,6 +7,7 @@ const cors = require("cors");
 const { connectDB } = require("./config/dbConfig");
 const authRoutes = require("./routes/authRoutes");
 const { default: rateLimit } = require("express-rate-limit");
+const bookRoutes = require("./routes/bookRoutes");
 
 // GLOBAL CONFIG
 dotenv.config();
@@ -31,6 +32,8 @@ app.get("/", (req, res) => {
 });
 // API ROUTES
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/book", bookRoutes); 
+
 
 connectDB();
 

@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
         // VALIDATION
         const {error , value } = registerSchema.validate(req.body , {abortEarly : false});
         if (error) {
-            return res.status(400).json({message : error.map((err) => err.message)});
+            return res.status(400).json({message : error.message});
         }
 
         const {email , password} = value;
@@ -87,6 +87,7 @@ router.post("/login", async (req, res) => {
         if (!user.isVerfied) {
             return res.status(403).json({message : "Account Is Not Verified Yet" , isVerfied : false , email : user.email} ); // Go To Verify OTP Page
         }
+        
 
         // CREATE TOKEN
         const token = jwt.sign({id : user._id , role : user.role} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
@@ -101,9 +102,9 @@ router.post("/login", async (req, res) => {
 // TODO VERFIY OTP
 router.post("/verify-otp", async (req, res) => {
      try {
-        const {error , value} = verifySchema.validate(req.body , {abortEarly : false});
+        const {error , value} = verifySchema.validate(req.body );
         if (error) {
-            return res.status(400).json({message : error.map((err) => err.message)});
+            return res.status(400).json({message : error.message});
         }
 
         const {email , otp} = value;
