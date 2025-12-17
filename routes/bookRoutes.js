@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
 });
 
 // Get Single Book
-router.get("/:id", authMiddleware , async (req, res) => {
+router.get("/:id" , async (req, res) => {
   try {
     const book = await Book.findById(id).populate("owner", "email role");
 

@@ -16,6 +16,7 @@ const User = require("../model/user");
 const { sendEmail } = require('../utils/sendEmail');
 const { generateOtp } = require('../utils/generateOtp');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { json } = require('stream/consumers');
 
 
 // TODO REGISTER USER
@@ -27,7 +28,8 @@ router.post("/register", async (req, res) => {
             return res.status(400).json({message : error.message});
         }
 
-        const {email , password} = value;
+        const {email , password , username} = value;
+        
 
         // CHECK IF USER EXISTS
         const userExists = await User.findOne({email : value.email});
@@ -46,13 +48,13 @@ router.post("/register", async (req, res) => {
             email,
             password : HashedPassword,
             otp,
-            otpExpired
+            otpExpired,
+            username
         });
 
          // SEND EMAIL
         await sendEmail(email , "Verify your email" , `Your OTP is ${otp}`);
-
-        res.status(201).json({message : "OTP sent to your email"});
+        res.status(201).json({message : "OTP sent to your email" , userId : user._id});
 
         
     } catch (error) {
@@ -66,7 +68,7 @@ router.post("/login", async (req, res) => {
         // VALIDATION
         const {error , value} = loginSchema.validate(req.body , {abortEarly : false});
         if (error) {
-            return res.status(400).json({message : error.map((err) => err.message)});
+            return res.status(400).json({message : error.details.map((err) => err.message)});
         }
 
         const {email , password} = value;
@@ -132,9 +134,12 @@ router.post("/verify-otp", async (req, res) => {
 
         await user.save();
 
+        // generate token
+        const token = jwt.sign({id : user._id , role : user.role} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
+
         // UPDATE USER IN DATABASE 
         // await User.findOneAndUpdate({email}, {isVerfied : true});
-        res.status(200).json({message : "Account verified Successfully!"});
+        res.status(200).json({message : "Account verified Successfully!" , token});
         
     } catch (error) {
         console.log(error)
@@ -169,10 +174,20 @@ router.post("/forgot-password", async (req, res) => {
         await user.save(); 
 
         // CREATE RESET URL
-        const resetUrl = `${process.env.CLIENT_ORIGIN}/reset-password/${resetPasswordToken}`;
-        // SEND EMAIL
-        await sendEmail(email , "Reset Password" , `Click On The Link To Reset Your Password ${resetUrl}`);
+        
+        const baseUrl = JSON.parse(process.env.PRODUCTION_ENV) ? process.env.CLIENT_ORIGIN : "http://localhost:5173" 
+        // const resetUrl = `${baseUrl}/reset-password/${resetPasswordToken}`;
+        const resetUrl = `${baseUrl}/reset-password/${resetPasswordToken}`;
 
+        // SEND EMAIL
+        await sendEmail(email , "Reset Your Password" , 
+        `Click the link to reset your password: ${resetUrl}`,
+        `<p>Click the link to reset your password: <a href="${resetUrl}" target="_blank" >Click Here</a></p>`
+
+
+        
+        );
+        
         res.status(200).json({message : "Reset Password Email Sent Successfully To Your Email..."});
 
 
@@ -238,13 +253,12 @@ router.post("/resend-otp", async (req, res) => {
         }
 
        // PREVENT SPAMMING
-        if (user.otp && user.otpExpired > Date.now()) {
-            return res.status(400).json({message : "Please Try Again After 10 Minutes"});
+        if (user.otpExpired > Date.now()) {
+            return res.status(400).json({message : "Please Wait Before Requesting A New OTP"});
         }
 
          // Generate OTP
-         const {otp , otpExpired} =  generateOtp();
-
+        const {otp , otpExpired} =  generateOtp();
         user.otp = otp;
         user.otpExpired = otpExpired;
 
@@ -253,7 +267,7 @@ router.post("/resend-otp", async (req, res) => {
         // SEND EMAIL
         await sendEmail(user.email , "Verify Your Account" , `Your OTP is ${otp}`);
 
-        res.status(200).json({message : "OTP Sent Successfully To Your Email"});
+        res.status(200).json({message : "OTP Sent Successfully To Your Email" , otp : otp}); // TODO REMOVE OTP IN PRODUCTION});
 
                
  
