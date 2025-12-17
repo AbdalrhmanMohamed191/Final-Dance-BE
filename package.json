@@ -13,5 +13,9 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
     "otp-generator": "^4.0.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+
   }
 }
