@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const path = require("path");
+
 
 const userSchema = new mongoose.Schema({
     email : {
@@ -35,7 +37,24 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordExpire : {
         type : Date
+    },
+
+    // profile Info
+    username : {
+        type : String,
+        required : true
+    },
+   profileImage: {
+  type: String,
+  default: path.join( "public", "default-profile.png") // Default profile image path,
+
+
+},
+    bio : {
+        type : String,
+        maxlength : 250
     }
+
 });
 
 module.exports = mongoose.model("User", userSchema);
