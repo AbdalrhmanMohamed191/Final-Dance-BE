@@ -9,20 +9,28 @@ const upload = require('../uploads/uploads');
 const Comment = require('../model/Comment');
 
 // CREATE POST
-router.post("/create" , authMiddleware , upload.array("image" , 4)  , async (req, res) => {
+router.post("/create", authMiddleware, upload.array("image", 4), async (req, res) => {
     try {
         const images = req.files.map(file => file.path);
         const caption = req.body.caption || '';
         const userId = req.user.id;
 
-        // Create a new post
         const newPost = new Post({
             caption,
             images,
             userId,
         });
-        await newPost.save();   
-        res.status(201).json({ message: "Post created successfully", post: newPost });
+
+        await newPost.save();
+
+        // Populate 
+        await newPost.populate("userId", "username profileImage");
+
+        res.status(201).json({
+            message: "Post created successfully",
+            post: newPost
+        });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server error" });
@@ -30,7 +38,6 @@ router.post("/create" , authMiddleware , upload.array("image" , 4)  , async (req
 });
 
 // GET ALL POSTS
-
 router.get("/"  , async (req, res) => {
     try {
         const posts = await Post.find().populate("userId" , "username profileImage").sort({ createdAt: -1 });
@@ -39,6 +46,20 @@ router.get("/"  , async (req, res) => {
         console.log(error);
         res.status(500).json({ message: "Internal Server error" });
     }
+});
+
+// GET posts of a specific user
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const posts = await Post.find({ userId: req.params.userId })
+      .populate("userId", "username profileImage")
+      .sort({ createdAt: -1 }); // أحدث البوستات أولاً
+
+    res.status(200).json({ message: "User posts fetched", posts });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server error" });
+  }
 });
 
 // LIKE POST || UNLIKE POST
