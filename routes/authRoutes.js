@@ -12,7 +12,7 @@ dotenv.config();
 // IMPORT VALIDATORS
 const { registerSchema, verifySchema, loginSchema, resendOtpSchema, forgotPasswordSchema, resetPasswordSchema } = require('../validation/userValidator');
 // const { generate } = require('otp-generator');
-const User = require("../model/user");
+const User = require("../model/User");
 const { sendEmail } = require('../utils/sendEmail');
 const { generateOtp } = require('../utils/generateOtp');
 const { authMiddleware } = require('../middleware/authMiddleware');

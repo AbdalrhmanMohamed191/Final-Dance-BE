@@ -23,6 +23,10 @@ const app = express();
 // MIDDLEWARES
 app.use(express.json());
 app.use(cors({ origin: JSON.parse(process.env.PRODUCTION_ENV) ? process.env.CLIENT_ORIGIN : "*" }));
+const isProduction = process.env.PRODUCTION_ENV === "true";
+
+
+
 
 // app.use('/public', express.static(path.join(__dirname , "public")));
 // console.log("public", path.join(__dirname, "public"));
@@ -59,9 +63,10 @@ app.use("/api/v1/comments", commentsRoutes);
 
 
 connectDB();
-
-
-// LISTENER 
-app.listen(PORT, () => {
+//LISTENER 
+app.listen( PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+
+
