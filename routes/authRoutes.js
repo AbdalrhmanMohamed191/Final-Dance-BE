@@ -87,7 +87,7 @@ router.post("/login", async (req, res) => {
 
         // CHECK IF USER IS VERIFIED
         if (!user.isVerfied) {
-            return res.status(403).json({message : "Account Is Not Verified Yet" , isVerfied : false , email : user.email} ); // Go To Verify OTP Page
+            return res.status(403).json({message : "Account Is Not Verified Yet" , isVerified : false , email : user.email} ); // Go To Verify OTP Page
         }
         
 

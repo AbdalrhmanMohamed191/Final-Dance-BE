@@ -11,6 +11,8 @@ const { default: rateLimit } = require("express-rate-limit");
 const bookRoutes = require("./routes/bookRoutes");
 const upload = require("./uploads/uploads");
 const userRoutes = require("./routes/userProfile");
+const postsRoutes = require("./routes/postsRoutes");
+const commentsRoutes = require("./routes/commentsRoutes");
 
 dotenv.config();
 
@@ -22,18 +24,20 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: JSON.parse(process.env.PRODUCTION_ENV) ? process.env.CLIENT_ORIGIN : "*" }));
 
-app.use('/public', express.static(path.join(__dirname , "public")));
-console.log("public", path.join(__dirname, "public"));
+// app.use('/public', express.static(path.join(__dirname , "public")));
+// console.log("public", path.join(__dirname, "public"));
+app.use("/public", express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
  // serve static files from the "public" directory
-app.use('/uploads', express.static(path.join(__dirname, "uploads"))); 
+// app.use('/uploads', express.static(path.join(__dirname, "uploads"))); 
 
 
 // RATE LIMITER
-app.use(rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 100 // limit each IP to 100 requests per windowMs
-}));
+// app.use(rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     limit: 100 // limit each IP to 100 requests per windowMs
+// }));
 // GLOBAL PORT
 const PORT = process.env.PORT || 3000
 // MAIN ROUTES
@@ -48,6 +52,10 @@ app.post("/upload", upload.single("file"), (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/book", bookRoutes); 
 app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/posts", postsRoutes);
+app.use("/api/v1/comments", commentsRoutes);
+
+
 
 
 connectDB();

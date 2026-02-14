@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
     },
    profileImage: {
   type: String,
-  default: path.join( "public", "default-profile.png") // Default profile image path,
+  default: path.join("public", "default-profile.png") // Default profile image path,
 
 
 },

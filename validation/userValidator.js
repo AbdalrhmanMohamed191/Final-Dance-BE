@@ -32,4 +32,8 @@ const resetPasswordSchema = joi.object({
 
 });
 
-module.exports = { registerSchema , verifySchema , loginSchema , resendOtpSchema , forgotPasswordSchema , resetPasswordSchema };
+const updateProfileSchema = joi.object({
+    name: joi.string().min(3).optional(),
+    bio: joi.string().max(250).optional()
+});
+module.exports = { registerSchema , verifySchema , loginSchema , resendOtpSchema , forgotPasswordSchema , resetPasswordSchema , updateProfileSchema };
