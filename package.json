@@ -1,4 +1,12 @@
 {
+  "name": "back-end-final--master",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -14,7 +22,15 @@
     "nodemailer": "^7.0.11",
     "otp-generator": "^4.0.1"
   },
-  "scripts": {
-    "start": "node index.js"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MohamedamaD/test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MohamedamaD/test/issues"
+  },
+  "homepage": "https://github.com/MohamedamaD/test#readme"
 }
