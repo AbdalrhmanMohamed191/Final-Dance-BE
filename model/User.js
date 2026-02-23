@@ -53,9 +53,25 @@ const userSchema = new mongoose.Schema({
     bio : {
         type : String,
         maxlength : 250
-    }
+    },
 
-});
+    followers : [
+        {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "User"
+        }
+    ],
+    following : [
+        {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "User"
+        }
+    ]
+
+
+
+
+}, {timestamps : true});
 
 // module.exports = mongoose.model("User", userSchema);
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);

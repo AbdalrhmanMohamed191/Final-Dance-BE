@@ -10,7 +10,7 @@ const router = express.Router();
 router.post("", authMiddleware  ,async (req, res) => {
     try {
         // prepare the data
-        const userId = req.user._id;
+        const userId = req.user.id;
         const data = req.body;
 
         // validate the data
@@ -32,6 +32,18 @@ router.post("", authMiddleware  ,async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 
+});
+
+// get All Reply of a comment
+router.get("/replies/:commentId" , async (req, res) => {
+    try {
+        const commentId = req.params.commentId;
+        const replies = await Comment.find({ parentComment: commentId }).populate("userId" , "username profileImage").sort({ createdAt: -1 });
+        res.status(200).json({ message: "Replies fetched successfully", replies });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server error" });
+    }
 });
 
 // update comment

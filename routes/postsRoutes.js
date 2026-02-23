@@ -62,36 +62,45 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// LIKE POST || UNLIKE POST
-router.put("/:id/like" , authMiddleware , async (req, res) => {
-    try {
-        const id = req.params.id;
-        const post = await Post.findById(id).populate("userId" , "username profileImage");
-
-        if (!post) {
-            return res.status(404).json({ message: "Post not found" });
-        }
-
-        // Check if user has already liked the post
-        const userId = req.user._id;
-        const isLiked = post.likes.includes(userId);
-        
-        if (isLiked) {
-            post.likes = post.likes.filter((id) => id != userId);
-        } else {
-            post.likes.push(userId);
-        }
-        await post.save();
-        res.status(200).json({ message: isLiked ? "Post unliked" : "Post liked", likesCount: post.likes.length });
-        
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "Internal Server error" });
+router.put("/:id/like", authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized: no user ID" });
     }
+
+    const postId = req.params.id;
+    const userId = req.user.id.toString();
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    // تأكد إن اللايكات مصفوفة وصافية
+    if (!post.likes) post.likes = [];
+    post.likes = post.likes.filter(id => id); // إزالة أي null
+
+    // تحقق إذا المستخدم عامل لايك
+    const isLiked = post.likes.some(id => id.toString() === userId);
+
+    if (isLiked) {
+      post.likes = post.likes.filter(id => id.toString() !== userId); // إزالة اللايك
+    } else {
+      post.likes.push(userId); // إضافة لايك
+    }
+
+    await post.save();
+
+    res.status(200).json({
+      likedByUser: !isLiked,          // هل المستخدم الآن عامل لايك
+      likesCount: post.likes.length   // العدد الكلي بعد التغيير
+    });
+  } catch (error) {
+    console.log("LIKE ROUTE ERROR:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
 
-// DELETE POST
-router.delete("/:id" , authMiddleware , async (req, res) => {
+// DELETE POST by owner
+router.delete("/:id", authMiddleware, async (req, res) => {
     try {
         const id = req.params.id;
         const post = await Post.findById(id);
@@ -100,12 +109,9 @@ router.delete("/:id" , authMiddleware , async (req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // Check if user is the owner of the post
-        if (post.userId.toString() !== req.user._id) {
+        if (post.userId.toString() !== req.user.id) {
             return res.status(403).json({ message: "You are not authorized to delete this post" });
         }
-
-        // Delete post
         await Post.findByIdAndDelete(id);
         res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {
@@ -126,4 +132,7 @@ router.get("/:id/comments", async (req, res) => {
     }
 });
         
+
+
+
 module.exports = router;
