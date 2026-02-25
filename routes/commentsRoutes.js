@@ -20,9 +20,9 @@ router.post("", authMiddleware  ,async (req, res) => {
             return res.status(400).json({ message: error.details.map((err) => err.message) });
         }
 
-        const { postId , text  } = value;
+        const { postId , text , parentComment } = value;
         // create the comment
-        const newcomment = await Comment.create({ userId : req.user.id,postId,text});
+        const newcomment = await Comment.create({ userId : req.user.id,postId,text, parentComment });
         const comment =   await Comment.findById(newcomment._id).populate("userId" , "username profileImage");
 
         res.status(201).json({ message: "Comment created successfully", comment });

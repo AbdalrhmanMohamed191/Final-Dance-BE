@@ -69,7 +69,7 @@ router.patch("/profile/update", authMiddleware, async (req, res) => {
 //   GET USER POSTS
 router.get("/:userId/posts", async (req, res) => {
   try {
-    const posts = await Post.find({ userId: req.params.userId }).sort({
+    const posts = await Post.find({ userId: req.params.userId }).populate("userId", "username profileImage").sort({
       createdAt: -1,
     });
 
@@ -79,6 +79,19 @@ router.get("/:userId/posts", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+// router.get("/:userId/posts", async (req, res) => {
+//   try {
+//     const posts = await Post.find({ userId: req.params.userId })
+//       .populate("userId", "username profileImage")
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({ posts });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
 
 //   FOLLOW USER
 router.patch("/:id/follow", authMiddleware, async (req, res) => {
@@ -205,5 +218,31 @@ router.get("/:id/connections", authMiddleware, async (req, res) => {
   }
 });
 
+
+// routes/user.js
+router.get('/user/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    const user = await User.findOne({ username }).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.get('/posts/user/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const posts = await Post.find({ userId: user._id }).populate('userId', 'username profileImage');
+    res.status(200).json({ posts });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 module.exports = router;

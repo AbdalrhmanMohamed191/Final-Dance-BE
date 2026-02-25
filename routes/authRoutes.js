@@ -92,7 +92,7 @@ router.post("/login", async (req, res) => {
         
 
         // CREATE TOKEN
-        const token = jwt.sign({id : user._id , role : user.role} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
+        const token = jwt.sign({id : user._id , role : user.role , email : user.email , username : user.username} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
         res.status(200).json({message : "Login Successfull" , token});
 
         
@@ -135,7 +135,7 @@ router.post("/verify-otp", async (req, res) => {
         await user.save();
 
         // generate token
-        const token = jwt.sign({id : user._id , role : user.role} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
+        const token = jwt.sign({id : user._id , role : user.role , email : user.email , username : user.username} , process.env.JWT_SECRET , {expiresIn : process.env.JWT_EXPIRES_IN});
 
         // UPDATE USER IN DATABASE 
         // await User.findOneAndUpdate({email}, {isVerfied : true});

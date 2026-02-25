@@ -41,7 +41,7 @@ router.post("/create", authMiddleware, upload.array("image", 4), async (req, res
 router.get("/"  , async (req, res) => {
     try {
         const posts = await Post.find().populate("userId" , "username profileImage").sort({ createdAt: -1 });
-        res.status(200).json({ message: "Posts fetched successfully", posts });
+        res.status(200).json({ posts });
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server error" });
@@ -55,12 +55,27 @@ router.get("/user/:userId", async (req, res) => {
       .populate("userId", "username profileImage")
       .sort({ createdAt: -1 }); // أحدث البوستات أولاً
 
-    res.status(200).json({ message: "User posts fetched", posts });
+    res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server error" });
   }
 });
+
+// GET posts of a specific user by userId
+// router.get("/:userId/posts", authMiddleware, async (req, res) => {
+//   try {
+//     const posts = await Post.find({ userId: req.params.userId })
+//       .populate("userId", "username profileImage")
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json(posts);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
+
 
 router.put("/:id/like", authMiddleware, async (req, res) => {
   try {
@@ -121,18 +136,86 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 });
 
 // Get all comments for a post
+// router.get("/:id/comments", async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const comments = await Comment.find({ postId: id }).populate("userId", "username profileImage").sort({ createdAt: -1 });
+//         res.status(200).json({ message: "Comments fetched successfully", comments });
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({ message: "Internal Server error" });
+//     }
+// });
+      
+// GET all comments for a post with nested replies
+// router.get("/:id/comments", async (req, res) => {
+//   try {
+//     const id = req.params.id;
+
+//     const comments = await Comment.find({ postId: id })
+//       .populate("userId", "username profileImage")
+//       .lean()
+//       .sort({ createdAt: 1 });
+
+//     const map = {};
+//     comments.forEach(c => {
+//       c.replies = [];
+//       map[c._id] = c;
+//     });
+
+//     const roots = [];
+
+//     comments.forEach(c => {
+//       if (c.parentComment) {
+//         map[c.parentComment]?.replies.push(c);
+//       } else {
+//         roots.push(c);
+//       }
+//     });
+
+//     res.status(200).json({
+//       message: "Comments fetched successfully",
+//       comments: roots
+//     });
+
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Internal Server error" });
+//   }
+// });
+
+// Get ALL comments for a post with nested replies
+
 router.get("/:id/comments", async (req, res) => {
     try {
         const id = req.params.id;
-        const comments = await Comment.find({ postId: id }).populate("userId", "username profileImage").sort({ createdAt: -1 });
-        res.status(200).json({ message: "Comments fetched successfully", comments });
+        const comments = await Comment.find({ postId: id }).populate("userId", "username profileImage").lean().sort({ createdAt: 1 });
+
+        const map = {};
+        comments.forEach(c => {
+            c.replies = [];
+            map[c._id] = c;
+        });
+
+        const roots = []; 
+        comments.forEach(c => {
+            if (c.parentComment) {
+                map[c.parentComment]?.replies.push(c);
+            } else {
+                roots.push(c);
+            }
+        });
+
+        res.status(200).json({
+            message: "Comments fetched successfully",
+            comments: roots
+        });
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Internal Server error" });
     }
 });
-        
-
 
 
 module.exports = router;
