@@ -12,6 +12,7 @@ const bookRoutes = require("./routes/bookRoutes");
 const upload = require("./uploads/uploads");
 const userRoutes = require("./routes/userProfile");
 const postsRoutes = require("./routes/postsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const commentsRoutes = require("./routes/commentsRoutes");
 
 dotenv.config();
@@ -58,6 +59,7 @@ app.use("/api/v1/book", bookRoutes);
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/posts", postsRoutes);
 app.use("/api/v1/comments", commentsRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 
 

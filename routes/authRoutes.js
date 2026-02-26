@@ -5,6 +5,9 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 
 // CONFIG
 dotenv.config();
@@ -292,4 +295,53 @@ router.get("/me" , authMiddleware , async (req, res) => {
         res.status(500).json({message : "Internal Server Error"})
     }
 });
+ 
+// google login take token from client and verify it in backend using google api and then create or login user in database and return token to client
+router.post("/google-login", async (req, res) => {
+  try {
+    const { token: googleToken } = req.body;
+
+    if (!googleToken) {
+      return res.status(400).json({ message: "Google token is required" });
+    }
+
+    // ✅ Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const { email, name, picture } = ticket.getPayload();
+
+    // ✅ Find or create user
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        email,
+        username: name,
+        profileImage: picture,
+        isGoogleUser: true,
+      });
+    }
+
+    // ✅ Create JWT
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Google login successful",
+      token: jwtToken,
+      user,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(401).json({ message: "Google login failed" });
+  }
+});
+
 module.exports = router;

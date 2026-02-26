@@ -9,11 +9,13 @@ const userSchema = new mongoose.Schema({
     },
     password : {
         type : String,
-        required : true
+        required : function() {
+            return !this.isGoogleUser;
+        } 
     },
-    username : {
-        type : String,
-        required : true
+    isGoogleUser : {
+        type : Boolean,
+        default : false
     },
     role : {
         type : String,
