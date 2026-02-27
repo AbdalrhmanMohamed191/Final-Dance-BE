@@ -2,6 +2,8 @@ const express = require("express");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const Comment = require("../model/Comment");
 const { createCommentSchema } = require("../validation/commentValidator");
+const Post = require("../model/Posts");
+
 
 const router = express.Router();
 

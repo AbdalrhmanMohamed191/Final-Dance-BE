@@ -245,4 +245,35 @@ router.get('/posts/user/:username', async (req, res) => {
   }
 });
 
+
+// Get all users (except passwords)
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.status(200).json({ users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+// delete user with cascade
+router.delete("/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ هينفذ pre remove middleware ويشيل كل حاجة مرتبطة باليوزر
+    await user.remove();
+
+    res.status(200).json({ message: "User and all related data deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 module.exports = router;
