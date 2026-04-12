@@ -130,6 +130,8 @@ io.on("connection", (socket) => {
 // CONNECT DB
 connectDB();
 
+app.get('/', (req, res) => res.send('🟢 Backend running!'));
+
 // SERVER LISTENER
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
